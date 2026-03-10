@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Öğrenci Seçici</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ═══════════════════════════════════════
+   TEMALAR  —  5 adet, tutarlı değişkenler
+   ═══════════════════════════════════════ */
+
+/* 1. AÇIK — gündüz, temiz mavi */
+body[data-theme="acik"]{
+  --page-bg : #e8eef5;
+  --bg      : #ffffff;
+  --bg2     : #f2f6fb;
+  --border  : #d0dbe8;
+  --ink     : #18293d;
+  --ink2    : #4e6a80;
+  --ink3    : #9ab0c4;
+  --accent  : #2475e8;
+  --accent2 : #d8eaff;
+  --btn     : #2475e8;
+  --btn-fg  : #ffffff;
+  --ok      : #1a9e6a;
+  --ok-bg   : #e2f7ef;
+  --danger  : #c0392b;
+  --danger-bg:#fdecea;
+  --shadow  : 0 1px 3px rgba(20,60,120,.08),0 4px 16px rgba(20,60,120,.06);
+  --overlay : rgba(10,30,60,.4);
+  --result-bg:#f0f7ff;
+}
+/* 2. KOYU — GitHub-dark benzeri */
+body[data-theme="koyu"]{
+  --page-bg : #0d1117;
+  --bg      : #161b22;
+  --bg2     : #1c2330;
+  --border  : #30363d;
+  --ink     : #c9d1d9;
+  --ink2    : #6e7f8d;
+  --ink3    : #3a4a58;
+  --accent  : #58a6ff;
+  --accent2 : #0d2140;
+  --btn     : #1f6feb;
+  --btn-fg  : #ffffff;
+  --ok      : #3fb950;
+  --ok-bg   : #0a2010;
+  --danger  : #f85149;
+  --danger-bg:#2a0d0d;
+  --shadow  : 0 2px 8px rgba(0,0,0,.4),0 6px 24px rgba(0,0,0,.3);
+  --overlay : rgba(0,0,0,.7);
+  --result-bg:#0d1f35;
+}
+/* 3. GECE MAVİSİ — derin uzay */
+body[data-theme="gece-mavi"]{
+  --page-bg : #060d1a;
+  --bg      : #0e1829;
+  --bg2     : #162035;
+  --border  : #1e2e48;
+  --ink     : #a8c8f0;
+  --ink2    : #4a6a98;
+  --ink3    : #243550;
+  --accent  : #4da6ff;
+  --accent2 : #091828;
+  --btn     : #1a5fcc;
+  --btn-fg  : #ffffff;
+  --ok      : #22d3a0;
+  --ok-bg   : #061820;
+  --danger  : #ff6b6b;
+  --danger-bg:#200a0a;
+  --shadow  : 0 2px 12px rgba(0,0,0,.6),0 6px 28px rgba(0,10,40,.5);
+  --overlay : rgba(0,5,20,.75);
+  --result-bg:#0a1628;
+}
+/* 4. MOR — derin galaksi */
+body[data-theme="mor"]{
+  --page-bg : #08051a;
+  --bg      : #110c28;
+  --bg2     : #1a1438;
+  --border  : #2a1f50;
+  --ink     : #cbbeff;
+  --ink2    : #7055c0;
+  --ink3    : #38286a;
+  --accent  : #a78bfa;
+  --accent2 : #18103a;
+  --btn     : #6d28d9;
+  --btn-fg  : #ffffff;
+  --ok      : #34d399;
+  --ok-bg   : #06180e;
+  --danger  : #f87171;
+  --danger-bg:#200808;
+  --shadow  : 0 2px 12px rgba(0,0,0,.6),0 6px 28px rgba(20,0,60,.4);
+  --overlay : rgba(8,4,22,.8);
+  --result-bg:#150f30;
+}
+/* 5. YEŞİL — terminal/orman */
+body[data-theme="yesil"]{
+  --page-bg : #03100d;
+  --bg      : #091c17;
+  --bg2     : #102820;
+  --border  : #163d30;
+  --ink     : #8dd8c4;
+  --ink2    : #388a72;
+  --ink3    : #1c4a3a;
+  --accent  : #2dd4aa;
+  --accent2 : #061810;
+  --btn     : #0d8f68;
+  --btn-fg  : #ffffff;
+  --ok      : #34d399;
+  --ok-bg   : #051410;
+  --danger  : #f87171;
+  --danger-bg:#1a0808;
+  --shadow  : 0 2px 12px rgba(0,0,0,.6),0 6px 28px rgba(0,20,14,.4);
+  --overlay : rgba(2,8,6,.8);
+  --result-bg:#071812;
+}
+
+/* ═══ GENEL ═══ */
+body{background:var(--page-bg);color:var(--ink);font-family:'Segoe UI',Tahoma,Arial,sans-serif;min-height:100vh;padding:28px 16px 64px;transition:background .25s,color .25s}
+.page{max-width:700px;margin:0 auto}
+
+/* Header */
+.header{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.hdr-left{}
+.eyebrow{font-family:'Courier New',monospace;font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+.hdr-h1{font-size:28px;font-weight:700;color:var(--ink)}
+.hdr-meta{margin-top:4px;font-size:11px;color:var(--ink2);font-family:'Courier New',monospace}
+
+/* Tema seçici */
+.theme-bar{display:flex;align-items:center;gap:8px;padding-top:6px;flex-wrap:wrap}
+.theme-lbl{font-family:'Courier New',monospace;font-size:10px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase}
+.tdot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:all .15s;flex-shrink:0;position:relative}
+.tdot:hover{transform:scale(1.18)}
+.tdot.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--page-bg),0 0 0 4.5px var(--accent)}
+.tdot[data-t="acik"]     {background:linear-gradient(135deg,#c8dff5 0%,#2475e8 100%)}
+.tdot[data-t="koyu"]     {background:linear-gradient(135deg,#1c2330 0%,#58a6ff 100%)}
+.tdot[data-t="gece-mavi"]{background:linear-gradient(135deg,#0e1829 0%,#4da6ff 100%)}
+.tdot[data-t="mor"]      {background:linear-gradient(135deg,#110c28 0%,#a78bfa 100%)}
+.tdot[data-t="yesil"]    {background:linear-gradient(135deg,#091c17 0%,#2dd4aa 100%)}
+
+/* Kart */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:10px}
+.lbl{font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+
+/* Upload */
+.upload-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);flex-wrap:wrap}
+.btn-upload{font-family:'Courier New',monospace;font-size:12px;font-weight:600;padding:8px 15px;border-radius:7px;background:var(--btn);color:var(--btn-fg);border:none;cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.btn-upload:hover{opacity:.85}
+.upload-hint{font-family:'Courier New',monospace;font-size:11px;color:var(--ink3);line-height:1.6}
+.upload-hint b{color:var(--ink2)}
+#fileInput{display:none}
+
+/* Pill sınıflar */
+.class-pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-family:'Courier New',monospace;font-size:12px;font-weight:700;padding:7px 16px;border-radius:100px;border:1.5px solid var(--border);background:var(--bg2);color:var(--ink2);cursor:pointer;transition:all .15s;user-select:none}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.on{background:var(--btn);border-color:var(--btn);color:var(--btn-fg)}
+.pill .n{opacity:.5;font-size:10px;margin-left:3px}
+
+/* Mod */
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-opt{border:1.5px solid var(--border);border-radius:9px;padding:12px 14px;cursor:pointer;transition:all .15s;background:var(--bg2)}
+.mode-opt:hover{border-color:var(--ink3)}
+.mode-opt.on{border-color:var(--accent);background:var(--bg)}
+.mode-opt.on .mdot{background:var(--accent)}
+.mhead{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.mdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .15s;flex-shrink:0}
+.mtitle{font-size:13px;font-weight:600;color:var(--ink)}
+.mdesc{font-size:11px;color:var(--ink2);padding-left:16px;line-height:1.4}
+
+/* İlerleme */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:var(--ok-bg);border-radius:9px;border:1px solid var(--border)}
+.prog-lbl{font-family:'Courier New',monospace;font-size:11px;color:var(--ok);flex-shrink:0}
+.prog-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--ok);border-radius:2px;transition:width .3s ease}
+.prog-rst{font-family:'Courier New',monospace;font-size:10px;color:var(--ok);background:none;border:1px solid var(--border);border-radius:5px;padding:3px 9px;cursor:pointer;transition:all .15s}
+.prog-rst:hover{border-color:var(--ok);background:var(--ok-bg)}
+
+/* Sonuç */
+.result-card{background:var(--result-bg);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:36px 24px;margin-bottom:10px;min-height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:background .2s}
+.result-card.flash{background:var(--accent2)}
+.r-empty{font-size:13px;color:var(--ink3);font-family:'Courier New',monospace}
+.r-class{font-family:'Courier New',monospace;font-size:11px;color:var(--accent);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:5px}
+.r-num{font-family:'Courier New',monospace;font-size:12px;color:var(--ink3);margin-bottom:3px}
+.r-name{font-size:38px;font-weight:700;color:var(--ink);line-height:1.1;transition:opacity .06s}
+.r-name.blink{opacity:.1}
+
+/* Seç butonu */
+.btn-pick{width:100%;padding:15px;background:var(--btn);color:var(--btn-fg);border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:10px;letter-spacing:.3px}
+.btn-pick:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.btn-pick:active{transform:translateY(0)}
+.btn-pick:disabled{background:var(--border);color:var(--ink3);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Tablo */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-family:'Courier New',monospace;font-size:10px;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase;text-align:left;padding:0 8px 9px;border-bottom:1px solid var(--border)}
+.tbl td{padding:8px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.td-n{font-family:'Courier New',monospace;font-size:11px;color:var(--ink3);width:26px}
+.td-c{font-family:'Courier New',monospace;font-size:11px;color:var(--accent);width:56px}
+.td-num{font-family:'Courier New',monospace;font-size:11px;color:var(--ink3);width:52px}
+.td-name{font-weight:500}
+.badge{font-family:'Courier New',monospace;font-size:9px;padding:2px 5px;border-radius:3px;background:var(--accent2);color:var(--accent);margin-left:5px}
+.tbl-empty{text-align:center;padding:18px;font-size:12px;color:var(--ink3);font-family:'Courier New',monospace}
+
+/* Buton sırası */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn-s{font-family:'Courier New',monospace;font-size:11px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--ink2);cursor:pointer;transition:all .15s}
+.btn-s:hover{border-color:var(--ink3);color:var(--ink)}
+.btn-s.danger{color:var(--danger);border-color:var(--danger)}
+.btn-s.danger:hover{background:var(--danger);color:#fff}
+.btn-s.primary{background:var(--btn);color:var(--btn-fg);border-color:var(--btn)}
+.btn-s.primary:hover{opacity:.85}
+
+/* Yönetim paneli */
+.mgr-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
+.mgr-head{padding:14px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:background .15s}
+.mgr-head:hover{background:var(--bg2)}
+.mgr-title{font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink3)}
+.mgr-arrow{font-size:12px;color:var(--ink3);transition:transform .2s}
+.mgr-arrow.open{transform:rotate(180deg)}
+.mgr-body{padding:0 20px 20px;display:none}
+.mgr-body.open{display:block}
+
+/* Öğrenci ekle formu */
+.add-form{display:grid;grid-template-columns:1fr 1fr 1fr 2fr auto;gap:8px;align-items:end;margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg-lbl{font-family:'Courier New',monospace;font-size:10px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase}
+.inp{background:var(--bg2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:'Segoe UI',Tahoma,Arial,sans-serif;outline:none;transition:border-color .15s;width:100%}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--ink3)}
+
+/* Öğrenci listesi */
+.srch{background:var(--bg2);border:1.5px solid var(--border);border-radius:7px;padding:8px 12px;font-size:13px;color:var(--ink);width:100%;outline:none;margin-bottom:10px;font-family:'Segoe UI',Tahoma,Arial,sans-serif}
+.srch:focus{border-color:var(--accent)}
+.srch::placeholder{color:var(--ink3)}
+.slist{max-height:280px;overflow-y:auto}
+.slist::-webkit-scrollbar{width:4px}
+.slist::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.srow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.srow:last-child{border-bottom:none}
+.sinfo{flex:1;font-size:13px}
+.smeta{font-family:'Courier New',monospace;font-size:11px;color:var(--ink3);margin-right:6px}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--ink3);font-size:14px;padding:2px 6px;border-radius:4px;transition:all .15s;flex-shrink:0;line-height:1}
+.btn-del:hover{color:var(--danger);background:var(--danger-bg)}
+
+.sep{height:1px;background:var(--border);margin:14px 0}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:var(--overlay);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
+.modal-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5);padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--ink2);font-family:'Courier New',monospace;margin-bottom:18px}
+.modal-preview{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:10px 14px;margin-bottom:18px;overflow-x:auto}
+.modal-preview table{border-collapse:collapse;font-size:12px;font-family:'Courier New',monospace;white-space:nowrap}
+.modal-preview th{color:var(--accent);padding:3px 12px 3px 0;font-weight:700}
+.modal-preview td{color:var(--ink2);padding:2px 12px 2px 0}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.map-item{display:flex;flex-direction:column;gap:5px}
+.map-lbl{font-family:'Courier New',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3)}
+.map-lbl span{color:var(--danger)}
+.map-sel{background:var(--bg2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:'Segoe UI',Tahoma,Arial,sans-serif;outline:none;cursor:pointer;transition:border-color .15s}
+.map-sel:focus{border-color:var(--accent)}
+.map-note{font-size:11px;color:var(--ink3);font-family:'Courier New',monospace;margin-bottom:16px;line-height:1.5}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+
+@media(max-width:560px){
+  .add-form{grid-template-columns:1fr 1fr}
+  .mode-row{grid-template-columns:1fr}
+  .header{flex-direction:column}
+  .map-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body data-theme="koyu">
+
+<!-- Sütun eşleştirme modal -->
+<div class="modal-overlay" id="colModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Sütun Eşleştirme</div>
+    <div class="modal-sub">Dosyadaki ilk satırlar — her alan için doğru sütunu seçin</div>
+    <div class="modal-preview" id="colPreview"></div>
+    <div class="map-grid">
+      <div class="map-item"><span class="map-lbl">Okul No</span><select class="map-sel" id="mapNo"></select></div>
+      <div class="map-item"><span class="map-lbl">Ad Soyad <span>*</span></span><select class="map-sel" id="mapAd"></select></div>
+      <div class="map-item"><span class="map-lbl">Sınıf <span>*</span></span><select class="map-sel" id="mapSinif"></select></div>
+      <div class="map-item"><span class="map-lbl">Şube</span><select class="map-sel" id="mapSube"></select></div>
+    </div>
+    <div class="map-note">* zorunlu &nbsp;·&nbsp; Şube yoksa "— yok —" seç (Sınıf sütununa "5-B" girebilirsin)</div>
+    <div class="modal-btns">
+      <button class="btn-s" onclick="closeModal()">İptal</button>
+      <button class="btn-s primary" onclick="confirmMapping()">Yükle</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Başlık -->
+  <div class="header">
+    <div class="hdr-left">
+      <div class="eyebrow">Sınıf Yönetimi</div>
+      <div class="hdr-h1">Öğrenci Seçici</div>
+      <div class="hdr-meta" id="headerMeta">Henüz veri yüklenmedi</div>
+    </div>
+    <div class="theme-bar">
+      <span class="theme-lbl">Tema</span>
+      <div class="tdot on"  data-t="acik"      title="Açık"       onclick="setTheme('acik')"></div>
+      <div class="tdot"     data-t="koyu"      title="Koyu"       onclick="setTheme('koyu')"></div>
+      <div class="tdot"     data-t="gece-mavi" title="Gece Mavisi" onclick="setTheme('gece-mavi')"></div>
+      <div class="tdot"     data-t="mor"       title="Mor"        onclick="setTheme('mor')"></div>
+      <div class="tdot"     data-t="yesil"     title="Yeşil"      onclick="setTheme('yesil')"></div>
+    </div>
+  </div>
+
+  <!-- Dosya yükle -->
+  <div class="upload-row">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">📂 Dosya Yükle</button>
+    <div class="upload-hint"><b>CSV</b> veya <b>Excel</b> — sütunları siz seçersiniz &nbsp;·&nbsp; .xlsx · .xls · .csv</div>
+  </div>
+
+  <!-- Sınıf seç -->
+  <div class="card">
+    <div class="lbl">Sınıf</div>
+    <div class="class-pills" id="classPills">
+      <span style="font-size:12px;color:var(--ink3);font-family:'Courier New',monospace">Önce dosya yükleyin</span>
+    </div>
+  </div>
+
+  <!-- Mod -->
+  <div class="card">
+    <div class="lbl">Seçim Modu</div>
+    <div class="mode-row">
+      <div class="mode-opt" id="modeRepeat" onclick="setMode('repeat')">
+        <div class="mhead"><div class="mdot"></div><div class="mtitle">Tekrarlı</div></div>
+        <div class="mdesc">Aynı öğrenci yeniden seçilebilir</div>
+      </div>
+      <div class="mode-opt on" id="modeUnique" onclick="setMode('unique')">
+        <div class="mhead"><div class="mdot"></div><div class="mtitle">Benzersiz</div></div>
+        <div class="mdesc">Her öğrenci yalnızca bir kez seçilir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- İlerleme -->
+  <div class="prog-row" id="progRow">
+    <span class="prog-lbl" id="progLbl">0 / 0</span>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <button class="prog-rst" onclick="resetUnique()">Sıfırla</button>
+  </div>
+
+  <!-- Sonuç -->
+  <div class="result-card" id="resultCard">
+    <div class="r-empty" id="rEmpty">← sınıf seç ve butona bas</div>
+    <div id="rContent" style="display:none">
+      <div class="r-class" id="rClass"></div>
+      <div class="r-num"   id="rNum"></div>
+      <div class="r-name"  id="rName"></div>
+    </div>
+  </div>
+
+  <button class="btn-pick" id="pickBtn" onclick="pick()">Öğrenci Seç</button>
+
+  <!-- Geçmiş -->
+  <div class="card">
+    <div class="lbl">Geçmiş <span id="histLbl" style="color:var(--accent);margin-left:4px"></span></div>
+    <div id="histWrap"><div class="tbl-empty">Henüz seçim yapılmadı</div></div>
+    <div class="btn-row"><button class="btn-s danger" onclick="clearHistory()">Geçmişi temizle</button></div>
+  </div>
+
+  <!-- Çıkmayanlar -->
+  <div class="card" id="remCard" style="display:none">
+    <div class="lbl">Çıkmayan Öğrenciler <span id="remLbl" style="color:var(--accent);margin-left:4px"></span></div>
+    <div id="remWrap"></div>
+  </div>
+
+  <!-- Yönetim -->
+  <div class="mgr-card">
+    <div class="mgr-head" onclick="toggleMgr()">
+      <span class="mgr-title">⚙ Veri Yönetimi</span>
+      <span class="mgr-arrow" id="mgrArrow">▼</span>
+    </div>
+    <div class="mgr-body" id="mgrBody">
+      <div class="lbl" style="padding-top:4px">Öğrenci Ekle</div>
+      <div class="add-form">
+        <div class="fg"><span class="fg-lbl">Okul No</span><input class="inp" id="inNo" placeholder="101"></div>
+        <div class="fg"><span class="fg-lbl">Sınıf</span><input class="inp" id="inSinif" placeholder="5"></div>
+        <div class="fg"><span class="fg-lbl">Şube</span><input class="inp" id="inSube" placeholder="B"></div>
+        <div class="fg"><span class="fg-lbl">Ad Soyad</span><input class="inp" id="inAd" placeholder="Ad Soyad"></div>
+        <div class="fg"><span class="fg-lbl">&nbsp;</span><button class="btn-s primary" onclick="addStudent()">+ Ekle</button></div>
+      </div>
+      <div class="sep"></div>
+      <div class="lbl">Kayıtlı Öğrenciler <span id="mgrTotal" style="color:var(--accent);margin-left:4px"></span></div>
+      <input class="srch" id="mgrSearch" placeholder="İsim, numara veya sınıf..." oninput="renderMgrList()">
+      <div class="slist" id="mgrList"></div>
+      <div class="sep"></div>
+      <div class="lbl" style="color:var(--danger)">Tehlikeli Alan</div>
+      <div class="btn-row"><button class="btn-s danger" onclick="clearAllData()">🗑 Tüm Veriyi Sil</button></div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+let students=[],selectedClass=null,mode='unique',usedMap={},history=[],picking=false;
+let _rows=[];
+
+/* — storage — */
+function save(){try{localStorage.setItem('ogr_v2',JSON.stringify(students))}catch(e){}}
+function load(){try{const d=localStorage.getItem('ogr_v2');if(d){const p=JSON.parse(d);if(Array.isArray(p)&&p.length){students=p;return true}}}catch(e){}return false}
+
+/* — init — */
+(function init(){
+  if(load()){buildClasses();updateHeader();renderMgrList();notify('✓ '+students.length+' öğrenci yüklendi')}
+  else updateHeader();
+
+  document.getElementById('fileInput').addEventListener('change',function(){
+    if(!this.files[0])return;
+    const file=this.files[0],name=file.name.toLowerCase();
+    if(name.endsWith('.csv')){
+      const r=new FileReader();
+      r.onload=e=>{
+        let t=e.target.result;
+        if(t.charCodeAt(0)===0xFEFF)t=t.slice(1);
+        const rows=t.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(',').map(c=>c.trim()));
+        openModal(rows);
+      };
+      r.readAsText(file,'UTF-8');
+    }else{
+      const r=new FileReader();
+      r.onload=e=>{
+        try{
+          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+          const ws=wb.Sheets[wb.SheetNames[0]];
+          const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+          openModal(rows.map(r=>r.map(c=>String(c).trim())));
+        }catch(err){notify('Hata: '+err.message)}
+      };
+      r.readAsArrayBuffer(file);
+    }
+    this.value='';
+  });
+})();
+
+/* — tema — */
+function setTheme(t){
+  document.body.setAttribute('data-theme',t);
+  document.querySelectorAll('.tdot').forEach(d=>d.classList.toggle('on',d.dataset.t===t));
+  try{localStorage.setItem('ogr_theme',t)}catch(e){}
+}
+// başlangıçta kayıtlı temayı yükle
+(function(){
+  try{const t=localStorage.getItem('ogr_theme');if(t)setTheme(t)}catch(e){}
+})();
+
+/* — modal — */
+function openModal(rows){
+  _rows=rows;
+  const firstIsHeader=rows[0]&&rows[0].some(c=>isNaN(c)&&c.length>0&&c.length<25);
+  const header=firstIsHeader?rows[0]:null;
+  const colCount=Math.max(...rows.slice(0,6).map(r=>r.length));
+  const labels=[];
+  for(let i=0;i<colCount;i++){
+    const L=String.fromCharCode(65+i);
+    labels.push({i,label:header&&header[i]?L+' — '+header[i]:L});
+  }
+  // önizleme
+  const preview=firstIsHeader?rows.slice(1,4):rows.slice(0,3);
+  let ph='<table><thead><tr>'+labels.map(c=>'<th>'+c.label+'</th>').join('')+'</tr></thead><tbody>';
+  preview.forEach(r=>{ph+='<tr>'+labels.map((c,i)=>'<td>'+(r[i]||'').slice(0,18)+'</td>').join('')+'</tr>'});
+  ph+='</tbody></table>';
+  document.getElementById('colPreview').innerHTML=ph;
+  // select'leri doldur
+  const none='<option value="-1">— yok —</option>';
+  const opts=labels.map(c=>'<option value="'+c.i+'">'+c.label+'</option>').join('');
+  ['mapNo','mapAd','mapSinif','mapSube'].forEach(id=>{document.getElementById(id).innerHTML=none+opts});
+  // otomatik tahmin
+  if(header){
+    header.forEach((h,i)=>{
+      const hl=h.toLowerCase();
+      if(/okul.?no|numara|^no$/i.test(hl))sel('mapNo',i);
+      if(/ad.?soyad|isim|öğrenci|ad$/i.test(hl))sel('mapAd',i);
+      if(/sınıf|sinif/i.test(hl))sel('mapSinif',i);
+      if(/şube|sube/i.test(hl))sel('mapSube',i);
+    });
+  }else if(colCount>=4){sel('mapNo',0);sel('mapSinif',1);sel('mapSube',2);sel('mapAd',3)}
+  else if(colCount===3){sel('mapSinif',0);sel('mapNo',1);sel('mapAd',2)}
+  document.getElementById('colModal').dataset.hdr=firstIsHeader?'1':'0';
+  document.getElementById('colModal').style.display='flex';
+}
+function sel(id,val){const s=document.getElementById(id);for(let o of s.options)if(parseInt(o.value)===val){s.value=val;return}}
+function closeModal(){document.getElementById('colModal').style.display='none';_rows=[]}
+function confirmMapping(){
+  const iNo=parseInt(document.getElementById('mapNo').value);
+  const iAd=parseInt(document.getElementById('mapAd').value);
+  const iSinif=parseInt(document.getElementById('mapSinif').value);
+  const iSube=parseInt(document.getElementById('mapSube').value);
+  if(iAd<0||iSinif<0){notify('Ad Soyad ve Sınıf zorunlu');return}
+  const hdr=document.getElementById('colModal').dataset.hdr==='1';
+  const data=hdr?_rows.slice(1):_rows;
+  const loaded=[];
+  for(const r of data){
+    if(!r||!r.length)continue;
+    const ad=(r[iAd]||'').trim();
+    const sinifRaw=(r[iSinif]||'').trim();
+    const sube=iSube>=0?(r[iSube]||'').trim():'';
+    const numara=iNo>=0?(r[iNo]||'').trim():'';
+    if(!ad||!sinifRaw)continue;
+    loaded.push({sinif:sube?sinifRaw+'-'+sube:sinifRaw,numara,ad});
+  }
+  closeModal();
+  applyLoaded(loaded);
+}
+
+/* — veri yükleme — */
+function applyLoaded(loaded){
+  if(!loaded.length){notify('Veri okunamadı — sütunları kontrol edin');return}
+  if(!students.length){
+    students=loaded;save();
+    buildClasses();showEmpty();updateHeader();renderHist();renderMgrList();
+    notify('✓ '+loaded.length+' öğrenci yüklendi');return;
+  }
+  let added=0,updated=0,noNum=0;const warns=[];
+  for(const s of loaded){
+    if(!s.numara){students.push(s);noNum++;continue}
+    const idx=students.findIndex(e=>e.numara===s.numara);
+    if(idx===-1){students.push(s);added++}
+    else{const ex=students[idx];if(ex.ad!==s.ad||ex.sinif!==s.sinif){warns.push(s.numara+': "'+ex.ad+'" → "'+s.ad+'"');students[idx]=s;updated++}}
+  }
+  save();buildClasses();showEmpty();updateHeader();renderHist();renderMgrList();
+  let msg='✓ '+added+' yeni · '+updated+' güncellendi';
+  if(noNum)msg+=' · '+noNum+' numarasız';
+  notify(msg);
+  if(warns.length)setTimeout(()=>alert('Güncellenen öğrenciler:\n\n'+warns.join('\n')),400);
+}
+
+/* — sınıflar — */
+function getClasses(){const m={};students.forEach(s=>{m[s.sinif]=(m[s.sinif]||0)+1});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0],'tr'))}
+function buildClasses(){
+  const pills=document.getElementById('classPills');
+  const cls=getClasses();
+  if(!cls.length){pills.innerHTML='<span style="font-size:12px;color:var(--ink3);font-family:\'Courier New\',monospace">Önce dosya yükleyin</span>';return}
+  pills.innerHTML=cls.map(([c,n])=>'<div class="pill'+(selectedClass===c?' on':'')+'" onclick="selectClass(\''+c+'\')">'+c+'<span class="n">'+n+'</span></div>').join('');
+}
+function selectClass(cls){
+  selectedClass=cls;buildClasses();showEmpty();updateProg();
+  renderHist();renderRem();
+  document.getElementById('histLbl').textContent=cls?'— '+cls:'';
+}
+
+/* — mod — */
+function setMode(m){
+  mode=m;
+  document.getElementById('modeRepeat').classList.toggle('on',m==='repeat');
+  document.getElementById('modeUnique').classList.toggle('on',m==='unique');
+  document.getElementById('progRow').style.display=m==='unique'?'flex':'none';
+  updateProg();
+}
+
+/* — seçim — */
+function clsStudents(){return students.map((s,i)=>({...s,_i:i})).filter(s=>s.sinif===selectedClass)}
+function updateProg(){
+  if(mode!=='unique'||!selectedClass)return;
+  const cls=clsStudents(),used=usedMap[selectedClass]?usedMap[selectedClass].size:0,total=cls.length;
+  document.getElementById('progLbl').textContent=used+' / '+total;
+  document.getElementById('progFill').style.width=total>0?(used/total*100)+'%':'0%';
+}
+function resetUnique(){if(selectedClass)usedMap[selectedClass]=new Set();updateProg();renderRem()}
+function pick(){
+  if(!selectedClass){const c=getClasses();if(c.length)selectClass(c[0][0]);return}
+  if(picking)return;
+  let pool=clsStudents();
+  if(mode==='unique'){
+    if(!usedMap[selectedClass])usedMap[selectedClass]=new Set();
+    const avail=pool.filter(s=>!usedMap[selectedClass].has(s._i));
+    if(!avail.length){usedMap[selectedClass]=new Set();notify('Tüm öğrenciler seçildi — sıfırlandı');pool=clsStudents()}
+    else pool=avail;
+  }
+  const chosen=pool[Math.floor(Math.random()*pool.length)];
+  picking=true;document.getElementById('pickBtn').disabled=true;
+  showResult(chosen);
+  const el=document.getElementById('rName');let b=0;
+  const blink=()=>{el.classList.add('blink');setTimeout(()=>{el.classList.remove('blink');b++;if(b<3)setTimeout(blink,70);else finish(chosen)},55)};
+  blink();
+}
+function finish(chosen){
+  if(mode==='unique'){usedMap[selectedClass].add(chosen._i);updateProg()}
+  addHist(chosen);updateHeader();
+  const c=document.getElementById('resultCard');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),350);
+  picking=false;document.getElementById('pickBtn').disabled=false;
+}
+function showResult(s){
+  document.getElementById('rEmpty').style.display='none';
+  document.getElementById('rContent').style.display='block';
+  document.getElementById('rClass').textContent=s.sinif;
+  document.getElementById('rNum').textContent=s.numara?'No: '+s.numara:'';
+  document.getElementById('rName').textContent=s.ad;
+}
+function showEmpty(){document.getElementById('rEmpty').style.display='block';document.getElementById('rContent').style.display='none'}
+
+/* — geçmiş — */
+function addHist(s){const seen=history.some(h=>h.sinif===s.sinif&&h.ad===s.ad);history.unshift({...s,repeat:seen&&mode==='repeat'});renderHist();renderRem()}
+function renderHist(){
+  const w=document.getElementById('histWrap');
+  const f=selectedClass?history.filter(h=>h.sinif===selectedClass):history;
+  if(!f.length){w.innerHTML='<div class="tbl-empty">'+(selectedClass?selectedClass+' için henüz seçim yapılmadı':'Henüz seçim yapılmadı')+'</div>';return}
+  w.innerHTML='<table class="tbl"><thead><tr><th>#</th><th>Sınıf</th><th>No</th><th>Ad Soyad</th></tr></thead><tbody>'+
+    f.map((h,i)=>'<tr><td class="td-n">'+(f.length-i)+'</td><td class="td-c">'+h.sinif+'</td><td class="td-num">'+(h.numara||'—')+'</td><td class="td-name">'+h.ad+(h.repeat?'<span class="badge">TEKRAR</span>':'')+'</td></tr>').join('')+
+  '</tbody></table>';
+}
+function clearHistory(){
+  if(selectedClass){history=history.filter(h=>h.sinif!==selectedClass);if(usedMap[selectedClass])usedMap[selectedClass]=new Set();updateProg()}
+  else{history=[];usedMap={}}
+  renderHist();renderRem();updateHeader();
+}
+
+/* — çıkmayanlar — */
+function renderRem(){
+  const card=document.getElementById('remCard'),w=document.getElementById('remWrap');
+  if(!selectedClass){card.style.display='none';return}
+  const cls=clsStudents(),used=usedMap[selectedClass]||new Set(),rem=cls.filter(s=>!used.has(s._i));
+  document.getElementById('remLbl').textContent='— '+selectedClass;
+  card.style.display='block';
+  if(!rem.length){w.innerHTML='<div class="tbl-empty">Tüm öğrenciler seçildi 🎉</div>';return}
+  w.innerHTML='<table class="tbl"><thead><tr><th>No</th><th>Ad Soyad</th></tr></thead><tbody>'+
+    rem.map(s=>'<tr><td class="td-num">'+(s.numara||'—')+'</td><td class="td-name">'+s.ad+'</td></tr>').join('')+
+  '</tbody></table>';
+}
+
+/* — yönetim — */
+function toggleMgr(){
+  const b=document.getElementById('mgrBody'),a=document.getElementById('mgrArrow');
+  const open=b.classList.toggle('open');a.classList.toggle('open',open);
+  if(open)renderMgrList();
+}
+function renderMgrList(){
+  const q=(document.getElementById('mgrSearch').value||'').toLowerCase();
+  const list=document.getElementById('mgrList');
+  document.getElementById('mgrTotal').textContent='('+students.length+' öğrenci)';
+  if(!students.length){list.innerHTML='<div class="tbl-empty">Kayıtlı öğrenci yok</div>';return}
+  const f=students.map((s,i)=>({...s,_i:i})).filter(s=>!q||s.ad.toLowerCase().includes(q)||s.numara.includes(q)||s.sinif.toLowerCase().includes(q));
+  if(!f.length){list.innerHTML='<div class="tbl-empty">Eşleşen öğrenci bulunamadı</div>';return}
+  list.innerHTML=f.map(s=>'<div class="srow"><div class="sinfo"><span class="smeta">'+s.sinif+'</span><span class="smeta">'+(s.numara||'—')+'</span><span>'+s.ad+'</span></div><button class="btn-del" onclick="delStudent('+s._i+')" title="Sil">✕</button></div>').join('');
+}
+function addStudent(){
+  const numara=document.getElementById('inNo').value.trim();
+  const sv=document.getElementById('inSinif').value.trim();
+  const sube=document.getElementById('inSube').value.trim();
+  const ad=document.getElementById('inAd').value.trim();
+  if(!sv||!sube||!ad){notify('Sınıf, Şube ve Ad Soyad zorunlu');return}
+  const sinif=sv+'-'+sube;
+  if(numara){
+    const idx=students.findIndex(e=>e.numara===numara);
+    if(idx!==-1){
+      const ex=students[idx];
+      if(!confirm(numara+' numaralı öğrenci zaten kayıtlı:\n"'+ex.ad+'" ('+ex.sinif+')\n\nGüncellensin mi?'))return;
+      students[idx]={sinif,numara,ad};save();
+      document.getElementById('inNo').value='';document.getElementById('inAd').value='';
+      buildClasses();updateHeader();renderMgrList();
+      if(selectedClass===sinif){renderHist();renderRem()}
+      notify('✓ '+ad+' güncellendi');return;
+    }
+  }
+  students.push({sinif,numara,ad});
+  document.getElementById('inNo').value='';document.getElementById('inAd').value='';
+  save();buildClasses();updateHeader();renderMgrList();
+  if(selectedClass===sinif){renderHist();renderRem()}
+  notify('✓ '+ad+' eklendi');
+}
+function delStudent(idx){
+  const s=students[idx];
+  if(!confirm('"'+s.ad+'" silinsin mi?'))return;
+  Object.keys(usedMap).forEach(cls=>{const ns=new Set();usedMap[cls].forEach(i=>{if(i<idx)ns.add(i);else if(i>idx)ns.add(i-1)});usedMap[cls]=ns});
+  students.splice(idx,1);save();
+  buildClasses();updateHeader();renderMgrList();renderHist();renderRem();updateProg();
+  notify('Öğrenci silindi');
+}
+function clearAllData(){
+  if(!confirm('Tüm öğrenci verisi silinsin mi? Bu işlem geri alınamaz.'))return;
+  students=[];selectedClass=null;history=[];usedMap={};save();
+  buildClasses();showEmpty();updateHeader();renderHist();renderRem();renderMgrList();
+  document.getElementById('histLbl').textContent='';
+  notify('Tüm veri silindi');
+}
+
+/* — yardımcılar — */
+function updateHeader(){
+  const cls=getClasses();
+  document.getElementById('headerMeta').textContent=students.length===0
+    ?'Henüz veri yüklenmedi — dosya yükleyin'
+    :students.length+' öğrenci · '+cls.length+' sınıf · '+history.length+' seçim yapıldı';
+}
+function notify(msg){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--btn);color:var(--btn-fg);font-family:\'Courier New\',monospace;font-size:12px;padding:10px 20px;border-radius:100px;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none';
+  el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);
+}
+document.addEventListener('keydown',e=>{
+  if((e.key===' '||e.key==='Enter')&&!picking&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='BUTTON'){e.preventDefault();pick()}
+});
+</script>
+</body>
+</html>
