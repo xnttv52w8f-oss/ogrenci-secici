@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -196,7 +197,7 @@ body{padding:20px 14px 60px}
     </div>
   </div>
 
-  <button class="btn-pick" id="btnSec">Öğrenci Seç</button>
+<button class="btn-pick" id="btnSec">Öğrenci Seç</button>
 
   <div class="card">
     <div class="lbl">Geçmiş <span id="histLbl" style="color:var(--ac);margin-left:4px"></span></div>
@@ -253,9 +254,22 @@ var uyariZamanlayici = null;
 /* ---- DEPOLAMA: tamamen bellekte, localStorage yok ---- */
 var depo = (function(){
   var v = {};
+  var ls = null;
+  try {
+    var test = '__ogr_test__';
+    window.localStorage.setItem(test, '1');
+    window.localStorage.removeItem(test);
+    ls = window.localStorage;
+  } catch(e) { ls = null; }
   return {
-    al: function(k){ return v[k] !== undefined ? v[k] : null; },
-    yaz: function(k,val){ v[k] = val; }
+    al: function(k){
+      try { if(ls) return ls.getItem(k); } catch(e) {}
+      return v[k] !== undefined ? v[k] : null;
+    },
+    yaz: function(k,val){
+      try { if(ls) { ls.setItem(k, val); return; } } catch(e) {}
+      v[k] = val;
+    }
   };
 })();
 
@@ -725,5 +739,6 @@ else baslikGuncelle();
 
 })();
 </script>
+
 </body>
 </html>
