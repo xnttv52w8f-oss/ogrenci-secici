@@ -505,6 +505,9 @@ function sec(){
 function bitir(secilen){
   if(mod==='unique'){ kullanilan[seciliSinif].add(secilen._i); ilerlemeGuncelle(); }
   gecmiseEkle(secilen); baslikGuncelle();
+  var ne=document.getElementById('rNum');
+  if(secilen.numara){ne.textContent='No: '+secilen.numara;ne.style.display='inline-block';}
+  else ne.style.display='none';
   var c=document.getElementById('rCard');
   c.classList.add('flash');
   setTimeout(function(){c.classList.remove('flash');},350);
@@ -516,9 +519,7 @@ function sonucGoster(s){
   document.getElementById('rEmpty').style.display='none';
   document.getElementById('rContent').style.display='block';
   document.getElementById('rClass').textContent=s.sinif;
-  var ne=document.getElementById('rNum');
-  if(s.numara){ne.textContent='No: '+s.numara;ne.style.display='inline-block';}
-  else ne.style.display='none';
+  document.getElementById('rNum').style.display='none';
   document.getElementById('rName').textContent=s.ad;
   document.getElementById('rName').style.opacity='1';
 }
